@@ -83,6 +83,7 @@ import com.maxrave.simpmusic.ui.icon.Groups
 import com.maxrave.simpmusic.ui.icon.PeopleAlt
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.navigation.destination.home.ListenTogetherDestination
+import com.maxrave.simpmusic.ui.screen.musicgen.MusicGenSheet
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.SongSelectionViewModel
@@ -158,6 +159,7 @@ fun LibraryScreen(
         mutableStateOf(0.dp)
     }
     var showAddSheet by remember { mutableStateOf(false) }
+    var showWriteSong by remember { mutableStateOf(false) }
 
     LaunchedEffect(nowPlaying) {
         Logger.w("LibraryScreen", "Check nowPlaying: $nowPlaying")
@@ -241,7 +243,7 @@ fun LibraryScreen(
                     state = state,
                 ) {
                     item {
-                        LibraryTilingBox(navController)
+                        LibraryTilingBox(navController, onWriteSong = { showWriteSong = true })
                     }
 
                     if (!listCanvasSong.data.isNullOrEmpty()) {
@@ -447,6 +449,15 @@ fun LibraryScreen(
                 }
             }
         }
+    }
+    if (showWriteSong) {
+        MusicGenSheet(
+            videoId = "",
+            title = "",
+            artist = "",
+            album = null,
+            onDismiss = { showWriteSong = false },
+        )
     }
     Column(
         Modifier

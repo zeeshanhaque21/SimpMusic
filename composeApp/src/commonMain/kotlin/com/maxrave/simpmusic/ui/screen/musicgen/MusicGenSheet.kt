@@ -57,7 +57,7 @@ fun MusicGenSheet(
     var pastedStyle by remember { mutableStateOf("") }
     var seed by remember { mutableStateOf("831001") }
     var choice by remember { mutableStateOf(LyricsChoice.Generate) }
-    var includeSource by remember { mutableStateOf(true) }
+    var includeSource by remember(videoId) { mutableStateOf(videoId.isNotBlank()) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -102,11 +102,6 @@ fun MusicGenSheet(
                     label = { Text("Write lyrics") },
                 )
                 FilterChip(
-                    selected = choice == LyricsChoice.Reuse,
-                    onClick = { choice = LyricsChoice.Reuse },
-                    label = { Text("Keep lyrics") },
-                )
-                FilterChip(
                     selected = choice == LyricsChoice.Paste,
                     onClick = { choice = LyricsChoice.Paste },
                     label = { Text("Paste") },
@@ -139,11 +134,13 @@ fun MusicGenSheet(
                 keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(imeAction = ImeAction.Done),
             )
 
-            FilterChip(
-                selected = includeSource,
-                onClick = { includeSource = !includeSource },
-                label = { Text(if (includeSource) "Using this track" else "Writing a new song") },
-            )
+            if (videoId.isNotBlank()) {
+                FilterChip(
+                    selected = includeSource,
+                    onClick = { includeSource = !includeSource },
+                    label = { Text(if (includeSource) "Using this track" else "Writing a new song") },
+                )
+            }
 
             state.job?.let { job ->
                 JobProgress(job = job, onCancel = { state.cancel() })

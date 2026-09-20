@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import com.maxrave.simpmusic.musicgen.startGenerationMonitor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job as CoroutineJob
 import kotlinx.coroutines.launch
@@ -20,6 +21,7 @@ import org.simpmusic.musicgenservice.MusicGenClientFactory
 import org.simpmusic.musicgenservice.MusicGenException
 import org.simpmusic.musicgenservice.MusicGenRepository
 import org.simpmusic.musicgenservice.SourceKind
+import org.simpmusic.musicgenservice.TrackMetadata
 
 /**
  * Drives one generation from the sheet.
@@ -43,6 +45,15 @@ class MusicGenSheetState(
 
     private var watcher: CoroutineJob? = null
 
+    init {
+        scope.launch {
+            runCatching { repository.refresh() }
+                .getOrNull()
+                ?.firstOrNull { !it.status.isTerminal }
+                ?.let(::reattach)
+        }
+    }
+
     fun start(request: MusicGenRequest) {
         if (factory.current() == null) {
             error = "Set the backend URL and token in Settings first."
@@ -54,6 +65,7 @@ class MusicGenSheetState(
             try {
                 val created = repository.start(request.toJobRequest())
                 job = created
+                startGenerationMonitor(created.id, request.title.ifBlank { "Generated song" })
                 watch(created)
             } catch (exception: MusicGenException) {
                 error = exception.message ?: "The backend rejected the request."
@@ -117,6 +129,7 @@ private fun MusicGenRequest.toJobRequest(): JobRequest {
         source = source,
         prompt = prompt,
         lyrics = lyrics,
+        metadata = TrackMetadata(title = title, artist = artist, album = album.orEmpty()),
         seed = seed,
     )
 }

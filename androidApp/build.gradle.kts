@@ -177,6 +177,7 @@ dependencies {
 
     implementation(projects.composeApp)
     implementation(projects.data)
+    implementation(projects.musicGenService)
 
     if (isFullBuild) {
         implementation(projects.crashlytics)

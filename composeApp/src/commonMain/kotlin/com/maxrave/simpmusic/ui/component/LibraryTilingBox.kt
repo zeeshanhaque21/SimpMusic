@@ -22,9 +22,12 @@ import com.maxrave.simpmusic.extension.NonLazyGrid
 import com.maxrave.simpmusic.ui.icon.Downloading
 import com.maxrave.simpmusic.ui.icon.Favorite
 import com.maxrave.simpmusic.ui.icon.Insights
+import com.maxrave.simpmusic.ui.icon.LibraryMusic
+import com.maxrave.simpmusic.ui.icon.PlaylistAdd
 import com.maxrave.simpmusic.ui.icon.SimpIcons
 import com.maxrave.simpmusic.ui.icon.TrendingUp
 import com.maxrave.simpmusic.ui.navigation.destination.library.LibraryDynamicPlaylistDestination
+import com.maxrave.simpmusic.ui.navigation.destination.library.GeneratedDestination
 import com.maxrave.simpmusic.ui.screen.library.LibraryDynamicPlaylistType
 import com.maxrave.simpmusic.ui.theme.typo
 import org.jetbrains.compose.resources.StringResource
@@ -33,20 +36,27 @@ import simpmusic.composeapp.generated.resources.Res
 import simpmusic.composeapp.generated.resources.downloaded
 import simpmusic.composeapp.generated.resources.favorite
 import simpmusic.composeapp.generated.resources.followed
+import simpmusic.composeapp.generated.resources.generated
 import simpmusic.composeapp.generated.resources.most_played
+import simpmusic.composeapp.generated.resources.write_song
 
 @Composable
-fun LibraryTilingBox(navController: NavController) {
+fun LibraryTilingBox(
+    navController: NavController,
+    onWriteSong: () -> Unit = {},
+) {
     val listItem =
         listOf(
             LibraryTilingState.Favorite,
             LibraryTilingState.Followed,
             LibraryTilingState.MostPlayed,
             LibraryTilingState.Downloaded,
+            LibraryTilingState.Generated,
+            LibraryTilingState.WriteSong,
         )
     NonLazyGrid(
         columns = 2,
-        itemCount = 4,
+        itemCount = listItem.size,
         modifier =
             Modifier
                 .fillMaxWidth()
@@ -90,6 +100,10 @@ fun LibraryTilingBox(navController: NavController) {
                                 ),
                             )
                         }
+
+                        LibraryTilingState.Generated -> navController.navigate(GeneratedDestination)
+
+                        LibraryTilingState.WriteSong -> onWriteSong()
                     }
                 },
             )
@@ -170,6 +184,20 @@ data class LibraryTilingState(
                 title = Res.string.downloaded,
                 containerColor = Color(0xff4CAF50),
                 icon = SimpIcons.Downloading,
+                iconColor = Color.Black,
+            )
+        val Generated =
+            LibraryTilingState(
+                title = Res.string.generated,
+                containerColor = Color(0xff80CBC4),
+                icon = SimpIcons.LibraryMusic,
+                iconColor = Color.Black,
+            )
+        val WriteSong =
+            LibraryTilingState(
+                title = Res.string.write_song,
+                containerColor = Color(0xffCE93D8),
+                icon = SimpIcons.PlaylistAdd,
                 iconColor = Color.Black,
             )
     }

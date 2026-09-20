@@ -246,6 +246,11 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </service>
+        <service
+            android:name="com.maxrave.simpmusic.service.musicgen.MusicGenerationService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"
+            android:stopWithTask="false" />
 
         <receiver
             android:name="androidx.media3.session.MediaButtonReceiver"

@@ -37,11 +37,14 @@ import com.maxrave.domain.mediaservice.handler.ToastType
 import com.maxrave.logger.Logger
 import com.maxrave.media3.di.setServiceActivitySession
 import com.maxrave.simpmusic.di.viewModelModule
+import com.maxrave.simpmusic.musicgen.startGenerationMonitor
 import com.maxrave.simpmusic.service.rss.RssFeedNotifyWork
 import com.maxrave.simpmusic.service.test.notification.NotifyWork
 import com.maxrave.simpmusic.utils.ComposeResUtils
 import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.android.ext.android.inject
@@ -49,6 +52,8 @@ import org.koin.core.context.loadKoinModules
 import org.koin.core.context.unloadKoinModules
 import org.koin.dsl.module
 import org.simpmusic.crashlytics.pushPlayerError
+import org.simpmusic.musicgenservice.MusicGenClientFactory
+import org.simpmusic.musicgenservice.MusicGenRepository
 import pub.devrel.easypermissions.EasyPermissions
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -58,6 +63,8 @@ class MainActivity : AppCompatActivity() {
     val viewModel: SharedViewModel by inject()
     val mediaPlayerHandler by inject<MediaPlayerHandler>()
     val dataStoreManager: DataStoreManager by inject()
+    val musicGenClientFactory: MusicGenClientFactory by inject()
+    val musicGenRepository: MusicGenRepository by inject()
 
     private var mBound = false
     private var shouldUnbind = false
@@ -251,6 +258,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
         viewModel.getLocation()
+
+        lifecycleScope.launch {
+            musicGenClientFactory.client.filterNotNull().first()
+            runCatching { musicGenRepository.refresh() }
+                .getOrNull()
+                ?.firstOrNull { !it.status.isTerminal }
+                ?.let { startGenerationMonitor(it.id, it.title ?: "Generated song") }
+        }
 
         setContent {
             App(viewModel)
