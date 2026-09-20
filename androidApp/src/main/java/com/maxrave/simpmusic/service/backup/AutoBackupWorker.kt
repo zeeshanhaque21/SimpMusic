@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.service.backup
 import android.content.ContentValues
 import android.content.Context
 import android.os.Build
+import android.os.Environment
 import android.provider.MediaStore
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -159,11 +160,16 @@ class AutoBackupWorker(
                 put(MediaStore.Downloads.MIME_TYPE, "application/zip")
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     put(MediaStore.Downloads.RELATIVE_PATH, "Download/SimpMusic")
+                } else {
+                    val directory =
+                        File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "SimpMusic")
+                            .apply { mkdirs() }
+                    put(MediaStore.MediaColumns.DATA, File(directory, fileName).absolutePath)
                 }
             }
 
             val uri = context.contentResolver.insert(
-                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                downloadsCollection(),
                 contentValues
             )
 
@@ -205,7 +211,7 @@ class AutoBackupWorker(
             val sortOrder = "${MediaStore.Downloads.DATE_ADDED} DESC"
 
             context.contentResolver.query(
-                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                downloadsCollection(),
                 projection,
                 selection,
                 selectionArgs,
@@ -229,7 +235,7 @@ class AutoBackupWorker(
                     val filesToDelete = backupFiles.drop(maxFiles)
                     filesToDelete.forEach { (id, name) ->
                         val deleteUri = android.content.ContentUris.withAppendedId(
-                            MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                            downloadsCollection(),
                             id
                         )
                         context.contentResolver.delete(deleteUri, null, null)
@@ -241,6 +247,13 @@ class AutoBackupWorker(
             Logger.e(TAG, "Error cleaning up old backups: ${e.message}")
         }
     }
+
+    private fun downloadsCollection() =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Downloads.EXTERNAL_CONTENT_URI
+        } else {
+            MediaStore.Files.getContentUri("external")
+        }
 
     companion object {
         private const val TAG = "AutoBackupWorker"
