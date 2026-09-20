@@ -1,7 +1,6 @@
 [submodule "core"]
     path = core
-    url = https://github.com/maxrave-dev/core
-# The music generation feature lives on a branch of this fork, so the
-# pinned submodule commit is not reachable from upstream. Switch to the
-# fork to check out this branch.
-# url = https://github.com/zeeshanhaque21/core
+    # The music generation branch pins a core commit that upstream does not
+    # have, so this branch clones core from the fork. Switch back to
+    # maxrave-dev/core before proposing anything upstream.
+    url = https://github.com/zeeshanhaque21/core
