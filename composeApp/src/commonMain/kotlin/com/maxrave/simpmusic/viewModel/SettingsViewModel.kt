@@ -152,6 +152,11 @@ class SettingsViewModel(
     val isHasApiKey: StateFlow<Boolean> = _isHasApiKey
     private val _useAITranslation = MutableStateFlow<Boolean>(false)
     val useAITranslation: StateFlow<Boolean> = _useAITranslation
+    private val _musicGenBaseUrl = MutableStateFlow<String>("")
+    val musicGenBaseUrl: StateFlow<String> = _musicGenBaseUrl
+
+    private val _musicGenToken = MutableStateFlow<String>("")
+    val musicGenToken: StateFlow<String> = _musicGenToken
     private val _customModelId = MutableStateFlow<String>("")
     val customModelId: StateFlow<String> = _customModelId
     private val _customOpenAIBaseUrl = MutableStateFlow<String>("")
@@ -307,6 +312,7 @@ class SettingsViewModel(
         getAIApiKey()
         getAITranslation()
         getCustomModelId()
+        getMusicGenSettings()
         getCustomOpenAIBaseUrl()
         getCustomOpenAIHeaders()
         getKillServiceOnExit()
@@ -752,6 +758,26 @@ class SettingsViewModel(
         }
     }
 
+    private fun getMusicGenSettings() {
+        viewModelScope.launch {
+            dataStoreManager.musicGenBaseUrl.collect { _musicGenBaseUrl.value = it }
+        }
+        viewModelScope.launch {
+            dataStoreManager.musicGenToken.collect { _musicGenToken.value = it }
+        }
+    }
+
+    fun setMusicGenBaseUrl(baseUrl: String) {
+        viewModelScope.launch {
+            dataStoreManager.setMusicGenBaseUrl(baseUrl)
+        }
+    }
+
+    fun setMusicGenToken(token: String) {
+        viewModelScope.launch {
+            dataStoreManager.setMusicGenToken(token)
+        }
+    }
     private fun getCustomModelId() {
         viewModelScope.launch {
             dataStoreManager.customModelId.collect { customModelId ->

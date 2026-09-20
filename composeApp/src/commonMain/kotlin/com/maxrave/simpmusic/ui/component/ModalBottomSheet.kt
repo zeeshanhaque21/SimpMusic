@@ -131,6 +131,8 @@ import com.maxrave.simpmusic.expect.shareUrl
 import com.maxrave.simpmusic.expect.ui.photoPickerResult
 import com.maxrave.simpmusic.extension.displayNameRes
 import com.maxrave.simpmusic.extension.greyScale
+import com.maxrave.simpmusic.ui.screen.musicgen.MusicGenSheet
+import com.maxrave.simpmusic.ui.icon.AutoGraph
 import com.maxrave.simpmusic.ui.icon.AccessAlarm
 import com.maxrave.simpmusic.ui.icon.Add
 import com.maxrave.simpmusic.ui.icon.AddCircleOutline
@@ -1435,6 +1437,7 @@ fun NowPlayingBottomSheet(
     var sleepTimerWarning by remember { mutableStateOf(false) }
     var isBottomSheetVisible by rememberSaveable { mutableStateOf(false) }
     var changePlaybackSpeedPitch by remember { mutableStateOf(false) }
+    var showGenerateSheet by remember { mutableStateOf(false) }
     val crossfadeEnabled by dataStoreManager.crossfadeEnabled.collectAsState(DataStoreManager.FALSE)
 
     LaunchedEffect(uiState) {
@@ -1464,6 +1467,15 @@ fun NowPlayingBottomSheet(
         }
     }
 
+    if (showGenerateSheet) {
+        MusicGenSheet(
+            videoId = uiState.songUIState.videoId,
+            title = uiState.songUIState.title,
+            artist = uiState.songUIState.listArtists.joinToString(", ") { it.name },
+            album = uiState.songUIState.album?.name,
+            onDismiss = { showGenerateSheet = false },
+        )
+    }
     if (addToAPlaylist) {
         AddToPlaylistModalBottomSheet(
             isBottomSheetVisible = true,
@@ -1844,6 +1856,14 @@ fun NowPlayingBottomSheet(
                             onNavigateToOtherScreen()
                             navController.navigate(AlbumDestination(browseId = id))
                         }
+                    }
+                    ActionButton(
+                        icon = SimpIcons.AutoGraph,
+                        text = null,
+                        textString = "Reimagine",
+                        enable = uiState.songUIState.videoId.isNotEmpty(),
+                    ) {
+                        showGenerateSheet = true
                     }
                     ActionButton(
                         icon = SimpIcons.Sensors,

@@ -536,6 +536,8 @@ fun SettingScreen(
     val useAITranslation by viewModel.useAITranslation.collectAsStateWithLifecycle()
     val translationLanguage by viewModel.translationLanguage.collectAsStateWithLifecycle()
     val customModelId by viewModel.customModelId.collectAsStateWithLifecycle()
+    val musicGenBaseUrl by viewModel.musicGenBaseUrl.collectAsStateWithLifecycle()
+    val musicGenToken by viewModel.musicGenToken.collectAsStateWithLifecycle()
     val customOpenAIBaseUrl by viewModel.customOpenAIBaseUrl.collectAsStateWithLifecycle()
     val customOpenAIHeaders by viewModel.customOpenAIHeaders.collectAsStateWithLifecycle()
     val helpBuildLyricsDatabase by viewModel.helpBuildLyricsDatabase.collectAsStateWithLifecycle()
@@ -1839,6 +1841,58 @@ fun SettingScreen(
                     subtitle = stringResource(Res.string.use_ai_translation_description),
                     switch = (useAITranslation to { viewModel.setAITranslation(it) }),
                     isEnable = isHasApiKey,
+                )
+
+                SettingItem(
+                    title = "Music Generation Backend",
+                    subtitle = musicGenBaseUrl.ifEmpty { "Not configured" },
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = "Music Generation Backend",
+                                textField =
+                                    SettingAlertState.TextFieldData(
+                                        label = "Base URL",
+                                        value = musicGenBaseUrl,
+                                        verifyCodeBlock = {
+                                            (it.isEmpty() || it.startsWith("http")) to "Invalid URL format"
+                                        },
+                                    ),
+                                message = "URL of the local generation backend, for example" +
+                                    " https://<machine>.<tailnet>.ts.net or http://<host>:8765",
+                                confirm =
+                                    runBlocking { getString(Res.string.set) } to { state ->
+                                        viewModel.setMusicGenBaseUrl(state.textField?.value ?: "")
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
+                )
+                SettingItem(
+                    title = "Music Generation Token",
+                    subtitle = if (musicGenToken.isEmpty()) "Not set" else "Configured",
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = "Music Generation Token",
+                                textField =
+                                    SettingAlertState.TextFieldData(
+                                        label = "Bearer token",
+                                        value = "",
+                                        verifyCodeBlock = {
+                                            (it.isNotEmpty() && !it.contains(" ")) to "Invalid token"
+                                        },
+                                    ),
+                                message = "The bearer token from config.toml on the backend machine.",
+                                confirm =
+                                    runBlocking { getString(Res.string.set) } to { state ->
+                                        viewModel.setMusicGenToken(state.textField?.value ?: "")
+                                    },
+                                dismiss = runBlocking { getString(Res.string.cancel) },
+                            ),
+                        )
+                    },
                 )
             }
         }
